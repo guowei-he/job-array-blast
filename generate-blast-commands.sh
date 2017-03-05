@@ -3,7 +3,7 @@
 # This script generates a command file that blast over all the records in a FASTA file.
 #
 # Usage:
-#   ./generates-blast-commands -i <inputfile> -o <outputfile> -c <commandfile> -d <database>
+#   ./generates-blast-commands -i <inputfile> -o <outputfile> -c <commandfile> -d <database> -s <blastscript>
 #
 
 main() {
@@ -11,7 +11,8 @@ main() {
     local inputfile=""
     local outputfile=""
     local database=""
-    while getopts ":i:o:c:d:" opt; do
+    local blastscript=""
+    while getopts ":i:o:c:d:s:" opt; do
         case $opt in
             i)
                 inputfile="$OPTARG"
@@ -24,6 +25,9 @@ main() {
                 ;;
             d)
                 database="$OPTARG"
+                ;;
+            s)
+                blastscript="$OPTARG"
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" >&2
@@ -39,7 +43,6 @@ main() {
         echo "Error: ${inputfile} does not exist."
         exit 1
     fi
-    echo -n "" > "${commandfile}"
 
     # Get number of records
     local nrecords=`grep ">" ${inputfile} | wc -l`
@@ -47,8 +50,10 @@ main() {
 
     # Generate the file.
     echo -n "" > ${outputfile}
+    echo -n "" > "${commandfile}"
     for nr in `seq 1 ${nrecords}`; do
-        echo "inputfile=\"/tmpdata/blast-input-\$\$-\${SLURM_JOBID}-${nr}.tmp\"; outputfile=\"/tmpdata/blast-output-\$\$-\${SLURM_JOBID}-${nr}.tmp\"; ./select-fa-record.sh ./input/myseq34300.fa ${nr} > \${inputfile}; module load gencore gencore_dev gencore_annotation; blastp -db=${database} -query=\${inputfile} -out=\${outputfile} -evalue=0.01 -num_threads=1 -num_alignments=5 -outfmt 5; cat \${outputfile} >> ${outputfile}; rm \${inputfile} \${outputfile};" >> ${commandfile}
+        echo "${blastscript} -n ${nr} -i ${inputfile} -d ${database}" >> ${commandfile}
+#        echo "inputfile=\"/tmpdata/blast-input-\$\$-\${SLURM_JOBID}-${nr}.tmp\"; outputfile=\"/tmpdata/blast-output-\$\$-\${SLURM_JOBID}-${nr}.tmp\"; ./select-fa-record.sh ./input/myseq34300.fa ${nr} > \${inputfile}; module load gencore gencore_dev gencore_annotation; blastp -db=${database} -query=\${inputfile} -out=\${outputfile} -evalue=0.01 -num_threads=1 -num_alignments=5 -outfmt 5; cat \${outputfile} >> ${outputfile}; rm \${inputfile} \${outputfile};" >> ${commandfile}
     done
 }
 
