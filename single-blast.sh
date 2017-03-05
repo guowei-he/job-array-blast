@@ -36,7 +36,7 @@ single-blast() {
     local tmpdir="/tmpdata"
     local tmp_inputfile="${tmpdir}/blast-input-$$-${nrecord}.tmp"
     local tmp_outputfile="${tmpdir}/blast-output-$$-${nrecord}.tmp"
-    ./select-fa-record.sh ${inputfile} ${nr} > ${tmp_inputfile} 
+    ./select-fa-record.sh ${inputfile} ${nrecord} > ${tmp_inputfile} 
     module load gencore gencore_dev gencore_annotation;
     blastp -db=${database} -query=${tmp_inputfile} -out=${tmp_outputfile} -evalue=0.01 -num_threads=4 -num_alignments=5 -outfmt 5;
     # show output
